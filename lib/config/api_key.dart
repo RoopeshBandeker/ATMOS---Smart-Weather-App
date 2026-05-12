@@ -1,0 +1,1 @@
+const String openweatherApiKey = 'YOUR_API_KEY';
