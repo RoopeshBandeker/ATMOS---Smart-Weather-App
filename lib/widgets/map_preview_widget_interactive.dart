@@ -34,6 +34,9 @@ class MapPreviewWidget extends StatefulWidget {
 }
 
 class _MapPreviewWidgetState extends State<MapPreviewWidget> {
+  static const int _previewInteractionFlags =
+      InteractiveFlag.all & ~InteractiveFlag.rotate;
+
   late final MapController _mapController;
   late DateTime _currentDateTime;
   late Timer _timer;
@@ -93,10 +96,7 @@ class _MapPreviewWidgetState extends State<MapPreviewWidget> {
   void _onLocationChanged() {
     final newLocation = widget.locationNotifier.value;
 
-    _mapController.move(
-      newLocation,
-      widget.initialZoom,
-    );
+    _mapController.move(newLocation, widget.initialZoom);
   }
 
   @override
@@ -147,7 +147,7 @@ class _MapPreviewWidgetState extends State<MapPreviewWidget> {
                             minZoom: 2,
                             maxZoom: 18,
                             interactionOptions: const InteractionOptions(
-                              flags: InteractiveFlag.all,
+                              flags: _previewInteractionFlags,
                             ),
                           ),
                           children: [
@@ -163,13 +163,10 @@ class _MapPreviewWidgetState extends State<MapPreviewWidget> {
                                   point: widget.locationNotifier.value,
                                   width: 28,
                                   height: 28,
-                                  child: GestureDetector(
-                                    onTap: widget.onMapTap,
-                                    child: const Icon(
-                                      Icons.location_on,
-                                      size: 28,
-                                      color: Color(0xFFFF1C46),
-                                    ),
+                                  child: const Icon(
+                                    Icons.location_on,
+                                    size: 28,
+                                    color: Color(0xFFFF1C46),
                                   ),
                                 ),
                               ],
@@ -188,7 +185,6 @@ class _MapPreviewWidgetState extends State<MapPreviewWidget> {
                               color: Colors.white.withValues(alpha: 0.7),
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            
                           ),
                         ),
                       ],

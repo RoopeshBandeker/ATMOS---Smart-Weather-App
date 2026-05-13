@@ -239,16 +239,14 @@ class HomeScreenState extends State<HomeScreen> {
         actions: const [],
       ),
       body: Padding(
-        padding: EdgeInsets.only(
-          top: MediaQuery.of(context).padding.top * 0.9,
-        ),
+        padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top * 0.9),
         child: _isLoading
             ? const Center(
                 child: CircularProgressIndicator(color: Colors.black87),
               )
             : _error != null
-                ? _buildErrorWidget()
-                : _buildScrollableContent(),
+            ? _buildErrorWidget()
+            : _buildScrollableContent(),
       ),
     );
   }
@@ -364,12 +362,12 @@ class HomeScreenState extends State<HomeScreen> {
       child: ScrollConfiguration(
         behavior: const _NoOverscrollScrollBehavior(),
         child: ListView(
-          physics: const _RefreshOnlyScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(
-              parent: ClampingScrollPhysics(),
-            ),
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: ClampingScrollPhysics(),
           ),
-          padding: EdgeInsets.zero,
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).padding.bottom + 220,
+          ),
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -408,39 +406,46 @@ class HomeScreenState extends State<HomeScreen> {
                             size: 22,
                           ),
                           const SizedBox(width: 4),
-                          Text(
-                            _weather!.current.locationName,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
+                          Flexible(
+                            child: Text(
+                              _weather!.current.locationName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 6),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            TextSpan(
-                              text: '${currentTemp.round()}',
-                              style: const TextStyle(
-                                fontSize: 120,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black87,
-                                height: 1.0,
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: '${currentTemp.round()}',
+                                style: const TextStyle(
+                                  fontSize: 120,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.black87,
+                                  height: 1.0,
+                                ),
                               ),
-                            ),
-                            TextSpan(
-                              text: tempUnit,
-                              style: const TextStyle(
-                                fontSize: 70,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                                height: 1.0,
+                              TextSpan(
+                                text: tempUnit,
+                                style: const TextStyle(
+                                  fontSize: 70,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                  height: 1.0,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 15),
@@ -500,26 +505,29 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMapCard() {
-    return SizedBox(
-      width: 365,
-      height: 200,
-      child: MapPreviewWidget(
-        locationNotifier: _mapLocationNotifier,
-        settings: widget.settings,
-        locationName: _weather?.current.locationName,
-        timezoneOffsetSeconds: _weather?.current.timezoneOffsetSeconds,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 365),
+      child: SizedBox(
+        width: double.infinity,
         height: 200,
-        initialZoom: 13,
-        onMapTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => MapScreen(
-                settings: widget.settings,
-                initialCenter: _mapLocationNotifier.value,
+        child: MapPreviewWidget(
+          locationNotifier: _mapLocationNotifier,
+          settings: widget.settings,
+          locationName: _weather?.current.locationName,
+          timezoneOffsetSeconds: _weather?.current.timezoneOffsetSeconds,
+          height: 200,
+          initialZoom: 13,
+          onMapTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => MapScreen(
+                  settings: widget.settings,
+                  initialCenter: _mapLocationNotifier.value,
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -571,24 +579,6 @@ class HomeScreenState extends State<HomeScreen> {
     );
 
     return {'high': high, 'low': low};
-  }
-}
-
-class _RefreshOnlyScrollPhysics extends ScrollPhysics {
-  const _RefreshOnlyScrollPhysics({super.parent});
-
-  @override
-  _RefreshOnlyScrollPhysics applyTo(ScrollPhysics? ancestor) {
-    return _RefreshOnlyScrollPhysics(parent: buildParent(ancestor));
-  }
-
-  @override
-  double applyBoundaryConditions(ScrollMetrics position, double value) {
-    if (value != position.pixels) {
-      return value - position.pixels;
-    }
-
-    return super.applyBoundaryConditions(position, value);
   }
 }
 

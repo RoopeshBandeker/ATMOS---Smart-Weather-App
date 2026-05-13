@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'models/settings.dart';
 import 'models/location_search_result.dart';
 import 'models/weather.dart';
@@ -16,8 +17,21 @@ import 'screens/settings_screen.dart';
 import 'widgets/component1.dart';
 import 'widgets/app_background.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+      systemNavigationBarContrastEnforced: false,
+      systemNavigationBarIconBrightness: Brightness.dark,
+      statusBarColor: Colors.transparent,
+      systemStatusBarContrastEnforced: false,
+      statusBarIconBrightness: Brightness.dark,
+    ),
+  );
 
   // Global error handler
   FlutterError.onError = (FlutterErrorDetails details) {
@@ -63,10 +77,7 @@ class ErrorApp extends StatelessWidget {
 class AtmosApp extends StatefulWidget {
   final bool enableBackgroundRefresh;
 
-  const AtmosApp({
-    super.key,
-    this.enableBackgroundRefresh = true,
-  });
+  const AtmosApp({super.key, this.enableBackgroundRefresh = true});
 
   @override
   State<AtmosApp> createState() => _AtmosAppState();

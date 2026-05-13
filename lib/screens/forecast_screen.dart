@@ -33,747 +33,770 @@ class ForecastScreen extends StatelessWidget {
       extendBodyBehindAppBar: true,
       appBar: null,
       body: Padding(
-        padding: EdgeInsets.only(
-          top: MediaQuery.of(context).padding.top * 0.9,
-        ),
+        padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top * 0.9),
         child: AnimatedBuilder(
-        animation: Listenable.merge([weatherNotifier, aqiNotifier, uvNotifier]),
-        builder: (context, child) {
-          final weatherData = weatherNotifier.value;
-          final aqi = aqiNotifier.value;
-          final uv = uvNotifier.value;
+          animation: Listenable.merge([
+            weatherNotifier,
+            aqiNotifier,
+            uvNotifier,
+          ]),
+          builder: (context, child) {
+            final weatherData = weatherNotifier.value;
+            final aqi = aqiNotifier.value;
+            final uv = uvNotifier.value;
 
-          if (weatherData == null) {
-            return const Center(
-              child: Text('Forecast data will appear once weather loads.'),
-            );
-          }
+            if (weatherData == null) {
+              return const Center(
+                child: Text('Forecast data will appear once weather loads.'),
+              );
+            }
 
-          final safeUv = (uv?.max ?? 0).toInt();
+            final safeUv = (uv?.max ?? 0).toInt();
 
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(
-              16, // left padding
-              10, // top padding
-              16, // right padding
-              24, // bottom padding
-            ),
-            children: [
-              // TOP: Sun card (left) + UV + AQI stacked (right)
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    // Controls width ratio of Sunrise/Sunset card
-                    flex: 1,
-                    child: _buildSunCard(context, weatherData.current),
-                  ),
-                  // Controls spacing between left and right card sections
-                  const SizedBox(width: 12),
-                  Expanded(
-                    // Controls width ratio of UV + AQI card column
-                    flex: 1,
-                    child: Column(
-                      children: [
-                        _buildUVCard(safeUv),
-                        // Controls spacing between UV and AQI cards
-                        const SizedBox(height: 12),
-                        _buildAQICard(context, aqi),
-                      ],
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: ClampingScrollPhysics(),
+              ),
+              padding: EdgeInsets.fromLTRB(
+                16, // left padding
+                10, // top padding
+                16, // right padding
+                MediaQuery.of(context).padding.bottom + 220, // bottom padding
+              ),
+              children: [
+                // TOP: Sun card (left) + UV + AQI stacked (right)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      // Controls width ratio of Sunrise/Sunset card
+                      flex: 1,
+                      child: _buildSunCard(context, weatherData.current),
                     ),
-                  ),
-                ],
-              ),
+                    // Controls spacing between left and right card sections
+                    const SizedBox(width: 12),
+                    Expanded(
+                      // Controls width ratio of UV + AQI card column
+                      flex: 1,
+                      child: Column(
+                        children: [
+                          _buildUVCard(safeUv),
+                          // Controls spacing between UV and AQI cards
+                          const SizedBox(height: 12),
+                          _buildAQICard(context, aqi),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
 
-              const SizedBox(height: 10),
+                const SizedBox(height: 10),
 
-              // HUMIDITY + PRESSURE
-              Row(
-                children: [
-                  Expanded(child: _buildHumidityCard(context, weatherData.current)),
-                  const SizedBox(width: 8),
-                  Expanded(child: _buildPressureCard(context, weatherData.current)),
-                ],
-              ),
+                // HUMIDITY + PRESSURE
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildHumidityCard(context, weatherData.current),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildPressureCard(context, weatherData.current),
+                    ),
+                  ],
+                ),
 
-              const SizedBox(height: 12),
+                const SizedBox(height: 12),
 
-              // TEMPERATURE GRAPH
-              _buildTemperatureGraphCard(context, weatherData.hourlyForecast),
+                // TEMPERATURE GRAPH
+                _buildTemperatureGraphCard(context, weatherData.hourlyForecast),
 
-              const SizedBox(height: 10),
+                const SizedBox(height: 10),
 
-              // WIND CARD
-              _buildWindCard(context, weatherData.current),
-            ],
-          );
-        },
-       ),
-     ));
+                // WIND CARD
+                _buildWindCard(context, weatherData.current),
+              ],
+            );
+          },
+        ),
+      ),
+    );
   }
 
-   // DASHBOARD BUILDER METHODS
+  // DASHBOARD BUILDER METHODS
 
-   Widget _buildSunCard(BuildContext context, CurrentWeather current) {
-     final sunriseTime = formatSunTime(current.sunrise, settings);
-     final sunrisePeriod = formatMeridiem(current.sunrise, settings);
-     final sunsetTime = formatSunTime(current.sunset, settings);
-     final sunsetPeriod = formatMeridiem(current.sunset, settings);
+  Widget _buildSunCard(BuildContext context, CurrentWeather current) {
+    final sunriseTime = formatSunTime(current.sunrise, settings);
+    final sunrisePeriod = formatMeridiem(current.sunrise, settings);
+    final sunsetTime = formatSunTime(current.sunset, settings);
+    final sunsetPeriod = formatMeridiem(current.sunset, settings);
 
-     return Container(
+    return Container(
       // Controls Sun card height (makes it taller vertically)
       height: 280,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          // Controls rounded corners of the Sun card
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.10),
-              blurRadius: 24,
-              spreadRadius: -4,
-              offset: const Offset(0, 12),
-            ),
-          ],
-        ),
-       // Controls internal spacing inside the Sun card
-       padding: const EdgeInsets.all(16),
-        child: Column(
-         crossAxisAlignment: CrossAxisAlignment.start,
-         children: [
-           Text(
-             'SUNRISE',
-             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-               color: const Color(0xFF9CA3AF),
-               fontWeight: FontWeight.w700,
-               letterSpacing: 1.25,
-               fontSize: 11,
-             ),
-           ),
-           const SizedBox(height: 15),
-           Row(
-             crossAxisAlignment: CrossAxisAlignment.center,
-             children: [
-               SvgPicture.asset(
-                 'assets/forecast_screen_assets/sunrise.svg',
-                 width: 72,
-                 height: 72,
-                 fit: BoxFit.contain,
-               ),
-               const SizedBox(width: 10),
-               Expanded(
-                 child: Align(
-                   alignment: Alignment.centerRight,
-                   child: _SunEventTime(
-                     time: sunriseTime,
-                     meridiem: sunrisePeriod,
-                     alignment: CrossAxisAlignment.end,
-                   ),
-                 ),
-               ),
-             ],
-           ),
-           const SizedBox(height: 15),
-           Container(
-             height: 1,
-             color: const Color(0xFF1F2937).withValues(alpha: 0.14),
-           ),
-           const SizedBox(height: 15),
-           Text(
-             'SUNSET',
-             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-               color: const Color(0xFF9CA3AF),
-               fontWeight: FontWeight.w700,
-               letterSpacing: 1.25,
-               fontSize: 11,
-             ),
-           ),
-           const SizedBox(height: 15),
-           Row(
-             crossAxisAlignment: CrossAxisAlignment.center,
-             children: [
-               Expanded(
-                 child: _SunEventTime(
-                   time: sunsetTime,
-                   meridiem: sunsetPeriod,
-                   alignment: CrossAxisAlignment.start,
-                 ),
-               ),
-               const SizedBox(width: 10),
-               SvgPicture.asset(
-                 'assets/forecast_screen_assets/sunset.svg',
-                 width: 72,
-                 height: 72,
-                 fit: BoxFit.contain,
-               ),
-             ],
-           ),
-         ],
-       ),
-     );
-    }
-
-    Widget _buildUVCard(int uv) {
-      return _UvIndexCard(uv: uv);
-    }
-
-    Widget _buildAQICard(BuildContext context, AirQualityIndex? aqi) {
-     final displayValue = _displayAqiValue(aqi);
-     final subtitle = aqi?.category ?? 'Moderate';
-     final progress = (displayValue / 100).clamp(0.0, 1.0);
-
-     return Container(
-        // Controls AQI card square height
-         height: 135,
-         decoration: BoxDecoration(
-           color: Colors.white,
-           // Controls rounded corners of the AQI card
-           borderRadius: BorderRadius.circular(24),
-           boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.10),
-              blurRadius: 24,
-              spreadRadius: -4,
-              offset: const Offset(0, 12),
-            ),
-           ],
-         ),
-         // Controls internal spacing inside the AQI card
-         padding: const EdgeInsets.all(16),
-         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'AQI',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: const Color(0xFF9CA3AF),
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.25,
-                fontSize: 11,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '$displayValue',
-              style: const TextStyle(
-                fontSize: 34,
-                height: 0.95,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF111111),
-                letterSpacing: -1.3,
-              ),
-            ),
-            const SizedBox(height: 4),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                subtitle,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: const Color(0xFF6B7280),
-                  fontWeight: FontWeight.w500,
-                  fontSize: 13,
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final indicatorLeft =
-                    (constraints.maxWidth - 14) * progress;
-                return Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Container(
-                      height: 8,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(999),
-                        gradient: const LinearGradient(
-                          colors: [
-                            Color(0xFF34C759),
-                            Color(0xFFFFD60A),
-                            Color(0xFFFF9F0A),
-                            Color(0xFFFF453A),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      left: indicatorLeft,
-                      top: -3,
-                      child: Container(
-                        width: 14,
-                        height: 14,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: const Color(0xFFD1D5DB),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.16),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ],
-        ),
-      );
-     }
-
-    int _displayAqiValue(AirQualityIndex? aqi) {
-     switch (aqi?.aqi ?? 3) {
-       case 1:
-         return 18;
-       case 2:
-         return 34;
-       case 3:
-         return 51;
-       case 4:
-         return 76;
-       case 5:
-         return 95;
-       default:
-         return 51;
-     }
-    }
-    
-
-Widget _buildHumidityCard(BuildContext context, CurrentWeather current) {
-  final humidityLabel = _humidityDescriptor(current.humidity);
-
-  return Container(
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(24),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.10),
-          blurRadius: 24,
-          spreadRadius: -4,
-          offset: const Offset(0, 12),
-        ),
-      ],
-    ),
-    padding: const EdgeInsets.all(12),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          'HUMIDITY',
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: const Color(0xFF9CA3AF),
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.25,
-            fontSize: 11,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        // Controls rounded corners of the Sun card
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.10),
+            blurRadius: 24,
+            spreadRadius: -4,
+            offset: const Offset(0, 12),
           ),
-        ),
-
-        const SizedBox(height: 10),
-
-        Padding(
-          // Controls horizontal shift of humidity value to the right
-          padding: const EdgeInsets.only(left: 7),
-
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+        ],
+      ),
+      // Controls internal spacing inside the Sun card
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'SUNRISE',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: const Color(0xFF9CA3AF),
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.25,
+              fontSize: 11,
+            ),
+          ),
+          const SizedBox(height: 15),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: '${current.humidity}',
-                      style: const TextStyle(
-                        fontSize: 36,
-                        height: 0.95,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF111111),
-                        letterSpacing: -1.3,
-                      ),
-                    ),
-                    const TextSpan(
-                      text: '%',
-                      style: TextStyle(
-                        fontSize: 22,
-                        height: 1.0,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF111111),
-                        letterSpacing: -0.3,
-                      ),
-                    ),
-                  ],
-                ),
+              SvgPicture.asset(
+                'assets/forecast_screen_assets/sunrise.svg',
+                width: 72,
+                height: 72,
+                fit: BoxFit.contain,
               ),
-
-              // Controls spacing between % and descriptor
               const SizedBox(width: 10),
-
-              Padding(
-                padding: const EdgeInsets.only(bottom: 3),
-                child: Text(
-                  humidityLabel,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: const ui.Color.fromARGB(255, 83, 88, 99),
-                    fontWeight: FontWeight.w500,
-                    fontSize: 14,
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: _SunEventTime(
+                    time: sunriseTime,
+                    meridiem: sunrisePeriod,
+                    alignment: CrossAxisAlignment.end,
                   ),
                 ),
               ),
             ],
           ),
-        ),
-      ],
-    ),
-  );
-}
-
-String _humidityDescriptor(int humidity) {
-  if (humidity < 35) return 'Low';
-  if (humidity <= 60) return 'Moderate';
-  if (humidity <= 75) return 'Humid';
-  return 'Very Humid';
-}
-     Widget _buildPressureCard(BuildContext context, CurrentWeather current) {
-     final unit = settings.pressureUnit.toString().split('.').last;
-     return Container(
-       decoration: BoxDecoration(
-         color: Colors.white.withValues(alpha:0.9),
-         borderRadius: BorderRadius.circular(20),
-         boxShadow: [
-           BoxShadow(
-             color: Colors.black.withValues(alpha:0.15),
-             blurRadius: 10,
-             offset: const Offset(0, 4),
-           ),
-         ],
-       ),
-       padding: const EdgeInsets.all(12),
-       child: Column(
-         crossAxisAlignment: CrossAxisAlignment.start,
-         children: [
-           Text('PRESSURE', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
-           const SizedBox(height: 8),
-           FittedBox(
-             fit: BoxFit.scaleDown,
-             alignment: Alignment.centerLeft,
-             child: Text(UnitConversionUtils.formatPressure(current.pressure, unit), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.black)),
-           ),
-         ],
-       ),
-     );
-    }
-Widget _buildTemperatureGraphCard(
-  BuildContext context,
-  List<HourlyForecast> hourlyForecast,
-) {
-  return Container(
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(25),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.10),
-          blurRadius: 24,
-          spreadRadius: -4,
-          offset: const Offset(0, 12),
-        ),
-      ],
-    ),
-    padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'TEMPERATURE GRAPH',
-          style: TextStyle(
-            fontFamily: 'Inter',
-            fontWeight: FontWeight.w700,
-            fontSize: 12,
-            color: Color(0xFF94A3B8),
+          const SizedBox(height: 15),
+          Container(
+            height: 1,
+            color: const Color(0xFF1F2937).withValues(alpha: 0.14),
           ),
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 180, // increased from 110
-          child: _buildTemperatureChart(context, hourlyForecast),
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _buildWindCard(BuildContext context, CurrentWeather current) {
-  final windUnit = settings.windSpeedUnit.toString().split('.').last;
-  final formattedWindSpeed = UnitConversionUtils.formatWindSpeed(
-    current.windSpeed,
-    windUnit,
-  );
-  final windSpeedParts = formattedWindSpeed.split(' ');
-  final windSpeedValue = windSpeedParts.first;
-  final windSpeedUnitLabel =
-      windSpeedParts.length > 1 ? windSpeedParts.sublist(1).join(' ') : '';
-  final directionShort = _formatDirectionShort(current.windDegree);
-  final directionLabel = _formatDirectionName(current.windDegree);
-
-  return Container(
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(23),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.25),
-          blurRadius: 4.3,
-          offset: const Offset(0, 4),
-        ),
-      ],
-    ),
-    padding: const EdgeInsets.fromLTRB(15, 12, 12, 12),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
+          const SizedBox(height: 15),
+          Text(
+            'SUNSET',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: const Color(0xFF9CA3AF),
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.25,
+              fontSize: 11,
+            ),
+          ),
+          const SizedBox(height: 15),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-
-              // ── WIND label ─────────────────────────
-              const Text(
-                'WIND',
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF94A3B8),
-                  letterSpacing: 0.5,
+              Expanded(
+                child: _SunEventTime(
+                  time: sunsetTime,
+                  meridiem: sunsetPeriod,
+                  alignment: CrossAxisAlignment.start,
                 ),
               ),
-
-              const SizedBox(height: 10),
-
-              // ── Speed value + unit/label row ────────
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    windSpeedValue,
-                    style: const TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 36,
-                      fontWeight: FontWeight.w700,
-                      height: 1.0,
-                      color: Color(0xFF000000),
-                    ),
-                  ),
-                  const SizedBox(width: 17),
-                  Text(
-                    '$windSpeedUnitLabel\nSpeed',
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      height: 1.0,
-                      color: Color(0xFF94A3B8),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 8),
-
-              // ── Divider ─────────────────────────────
-              Container(
-                height: 1.5,
-                width: 147,
-                color: const Color(0xFF000000).withValues(alpha: 0.15),
-              ),
-
-              const SizedBox(height: 8),
-
-              // ── Direction name + label row ──────────
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    directionLabel,
-                    style: const TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.17,
-                      color: Color(0xFF000000),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Direction',
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF94A3B8),
-                    ),
-                  ),
-                ],
+              const SizedBox(width: 10),
+              SvgPicture.asset(
+                'assets/forecast_screen_assets/sunset.svg',
+                width: 72,
+                height: 72,
+                fit: BoxFit.contain,
               ),
             ],
           ),
-        ),
-        const SizedBox(width: 8),
-        _WindCompass(
-          directionShort: directionShort,
-          directionDegrees: current.windDegree.toDouble(),
-          size: 110,
-        ),
-      ],
-    ),
-  );
-}
-String _formatDirectionShort(int deg) {
-  const arrows = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-  final index = (((deg % 360) + 360) % 360 + 22.5) ~/ 45 % 8;
-  return arrows[index];
-}
+        ],
+      ),
+    );
+  }
 
-String _formatDirectionName(int deg) {
-  const directions = [
-    'North',
-    'North-East',
-    'East',
-    'South-East',
-    'South',
-    'South-West',
-    'West',
-    'North-West',
-  ];
-  final index = (((deg % 360) + 360) % 360 + 22.5) ~/ 45 % 8;
-  return directions[index];
-}
-Widget _buildTemperatureChart(
-  BuildContext context,
-  List<HourlyForecast> hourlyForecast,
-) {
-  final sampledItems = hourlyForecast.take(10).toList();
-  final chartTemps = sampledItems.isEmpty
-      ? [0.0, 0.0, 0.0, 0.0, 0.0]
-      : sampledItems.map((item) {
-          return settings.temperatureUnit == TemperatureUnit.celsius
-              ? item.temperature
-              : UnitConversionUtils.celsiusToFahrenheit(item.temperature);
-        }).toList();
-  final count = chartTemps.length;
-  final minTemp = chartTemps.reduce((a, b) => a < b ? a : b);
-  final maxTemp = chartTemps.reduce((a, b) => a > b ? a : b);
-  final padding = ((maxTemp - minTemp).abs() * 0.35).clamp(2.0, 6.0);
-  final minY = minTemp - padding;
-  final maxY = maxTemp + padding;
+  Widget _buildUVCard(int uv) {
+    return _UvIndexCard(uv: uv);
+  }
 
-  final labels = sampledItems.isEmpty
-      ? List.generate(count, (i) => '')
-      : sampledItems
-          .map((item) => formatHourLabel(item.dateTime, settings))
-          .toList();
-  return IgnorePointer(
-    child: LineChart(
-      LineChartData(
-        minX: 0,
-        maxX: (count - 1).toDouble(),
-        minY: minY,
-        maxY: maxY,
-        lineTouchData: const LineTouchData(enabled: false),
-        gridData: FlGridData(
-          show: true,
-          drawHorizontalLine: false,
-          drawVerticalLine: true,
-          verticalInterval: 1,
-          getDrawingVerticalLine: (value) => const FlLine(
-            color: Color(0xFFB1B1B1),
-            strokeWidth: 0.5,
+  Widget _buildAQICard(BuildContext context, AirQualityIndex? aqi) {
+    final displayValue = _displayAqiValue(aqi);
+    final subtitle = aqi?.category ?? 'Moderate';
+    final progress = (displayValue / 100).clamp(0.0, 1.0);
+
+    return Container(
+      // Controls AQI card square height
+      height: 135,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        // Controls rounded corners of the AQI card
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.10),
+            blurRadius: 24,
+            spreadRadius: -4,
+            offset: const Offset(0, 12),
           ),
-        ),
-        borderData: FlBorderData(show: false),
-        titlesData: FlTitlesData(
-          leftTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
+        ],
+      ),
+      // Controls internal spacing inside the AQI card
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'AQI',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: const Color(0xFF9CA3AF),
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.25,
+              fontSize: 11,
+            ),
           ),
-          rightTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
+          const SizedBox(height: 8),
+          Text(
+            '$displayValue',
+            style: const TextStyle(
+              fontSize: 34,
+              height: 0.95,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF111111),
+              letterSpacing: -1.3,
+            ),
           ),
-          topTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
+          const SizedBox(height: 4),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              subtitle,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: const Color(0xFF6B7280),
+                fontWeight: FontWeight.w500,
+                fontSize: 13,
+              ),
+            ),
           ),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 36,
-              interval: 1,
-              getTitlesWidget: (value, meta) {
-                final index = value.round();
-                if (index < 0 || index >= labels.length) {
-                  return const SizedBox.shrink();
-                }
-                return SizedBox(
-                  height: 36,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: Text(
-                      labels[index],
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF2E2E30),
+          const SizedBox(height: 8),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final indicatorLeft = (constraints.maxWidth - 14) * progress;
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    height: 8,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(999),
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFF34C759),
+                          Color(0xFFFFD60A),
+                          Color(0xFFFF9F0A),
+                          Color(0xFFFF453A),
+                        ],
                       ),
                     ),
                   ),
-                );
-              },
+                  Positioned(
+                    left: indicatorLeft,
+                    top: -3,
+                    child: Container(
+                      width: 14,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: const Color(0xFFD1D5DB),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.16),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  int _displayAqiValue(AirQualityIndex? aqi) {
+    switch (aqi?.aqi ?? 3) {
+      case 1:
+        return 18;
+      case 2:
+        return 34;
+      case 3:
+        return 51;
+      case 4:
+        return 76;
+      case 5:
+        return 95;
+      default:
+        return 51;
+    }
+  }
+
+  Widget _buildHumidityCard(BuildContext context, CurrentWeather current) {
+    final humidityLabel = _humidityDescriptor(current.humidity);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.10),
+            blurRadius: 24,
+            spreadRadius: -4,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'HUMIDITY',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: const Color(0xFF9CA3AF),
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.25,
+              fontSize: 11,
             ),
           ),
-        ),
-        lineBarsData: [
-          LineChartBarData(
-            isCurved: true,
-            curveSmoothness: 0.35,
-            color: const Color(0xFF6473FF),
-            barWidth: 2.0,
-            isStrokeCapRound: true,
-            dotData: const FlDotData(show: false),
-            belowBarData: BarAreaData(
-              show: true,
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  const Color(0xFF9AA5FF).withValues(alpha: 0.45),
-                  const Color(0xFFBEC6FF).withValues(alpha: 0.25),
-                  const Color(0xFFFFFFFF).withValues(alpha: 0.0),
-                ],
-              ),
-            ),
-            spots: List.generate(
-              count,
-              (i) => FlSpot(i.toDouble(), chartTemps[i]),
+
+          const SizedBox(height: 10),
+
+          Padding(
+            // Controls horizontal shift of humidity value to the right
+            padding: const EdgeInsets.only(left: 7),
+
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: '${current.humidity}',
+                        style: const TextStyle(
+                          fontSize: 36,
+                          height: 0.95,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF111111),
+                          letterSpacing: -1.3,
+                        ),
+                      ),
+                      const TextSpan(
+                        text: '%',
+                        style: TextStyle(
+                          fontSize: 22,
+                          height: 1.0,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF111111),
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Controls spacing between % and descriptor
+                const SizedBox(width: 10),
+
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 3),
+                  child: Text(
+                    humidityLabel,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: const ui.Color.fromARGB(255, 83, 88, 99),
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
-    ),
-  );
+    );
+  }
+
+  String _humidityDescriptor(int humidity) {
+    if (humidity < 35) return 'Low';
+    if (humidity <= 60) return 'Moderate';
+    if (humidity <= 75) return 'Humid';
+    return 'Very Humid';
+  }
+
+  Widget _buildPressureCard(BuildContext context, CurrentWeather current) {
+    final unit = settings.pressureUnit.toString().split('.').last;
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'PRESSURE',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.black54),
+          ),
+          const SizedBox(height: 8),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              UnitConversionUtils.formatPressure(current.pressure, unit),
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTemperatureGraphCard(
+    BuildContext context,
+    List<HourlyForecast> hourlyForecast,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.10),
+            blurRadius: 24,
+            spreadRadius: -4,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'TEMPERATURE GRAPH',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontWeight: FontWeight.w700,
+              fontSize: 12,
+              color: Color(0xFF94A3B8),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 180, // increased from 110
+            child: _buildTemperatureChart(context, hourlyForecast),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWindCard(BuildContext context, CurrentWeather current) {
+    final windUnit = settings.windSpeedUnit.toString().split('.').last;
+    final formattedWindSpeed = UnitConversionUtils.formatWindSpeed(
+      current.windSpeed,
+      windUnit,
+    );
+    final windSpeedParts = formattedWindSpeed.split(' ');
+    final windSpeedValue = windSpeedParts.first;
+    final windSpeedUnitLabel = windSpeedParts.length > 1
+        ? windSpeedParts.sublist(1).join(' ')
+        : '';
+    final directionShort = _formatDirectionShort(current.windDegree);
+    final directionLabel = _formatDirectionName(current.windDegree);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(23),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.25),
+            blurRadius: 4.3,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.fromLTRB(15, 12, 12, 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // ── WIND label ─────────────────────────
+                const Text(
+                  'WIND',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF94A3B8),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                // ── Speed value + unit/label row ────────
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      windSpeedValue,
+                      style: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 36,
+                        fontWeight: FontWeight.w700,
+                        height: 1.0,
+                        color: Color(0xFF000000),
+                      ),
+                    ),
+                    const SizedBox(width: 17),
+                    Text(
+                      '$windSpeedUnitLabel\nSpeed',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        height: 1.0,
+                        color: Color(0xFF94A3B8),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 8),
+
+                // ── Divider ─────────────────────────────
+                Container(
+                  height: 1.5,
+                  width: 147,
+                  color: const Color(0xFF000000).withValues(alpha: 0.15),
+                ),
+
+                const SizedBox(height: 8),
+
+                // ── Direction name + label row ──────────
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      directionLabel,
+                      style: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.17,
+                        color: Color(0xFF000000),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Direction',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF94A3B8),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          _WindCompass(
+            directionShort: directionShort,
+            directionDegrees: current.windDegree.toDouble(),
+            size: 110,
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDirectionShort(int deg) {
+    const arrows = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+    final index = (((deg % 360) + 360) % 360 + 22.5) ~/ 45 % 8;
+    return arrows[index];
+  }
+
+  String _formatDirectionName(int deg) {
+    const directions = [
+      'North',
+      'North-East',
+      'East',
+      'South-East',
+      'South',
+      'South-West',
+      'West',
+      'North-West',
+    ];
+    final index = (((deg % 360) + 360) % 360 + 22.5) ~/ 45 % 8;
+    return directions[index];
+  }
+
+  Widget _buildTemperatureChart(
+    BuildContext context,
+    List<HourlyForecast> hourlyForecast,
+  ) {
+    final sampledItems = hourlyForecast.take(10).toList();
+    final chartTemps = sampledItems.isEmpty
+        ? [0.0, 0.0, 0.0, 0.0, 0.0]
+        : sampledItems.map((item) {
+            return settings.temperatureUnit == TemperatureUnit.celsius
+                ? item.temperature
+                : UnitConversionUtils.celsiusToFahrenheit(item.temperature);
+          }).toList();
+    final count = chartTemps.length;
+    final minTemp = chartTemps.reduce((a, b) => a < b ? a : b);
+    final maxTemp = chartTemps.reduce((a, b) => a > b ? a : b);
+    final padding = ((maxTemp - minTemp).abs() * 0.35).clamp(2.0, 6.0);
+    final minY = minTemp - padding;
+    final maxY = maxTemp + padding;
+
+    final labels = sampledItems.isEmpty
+        ? List.generate(count, (i) => '')
+        : sampledItems
+              .map((item) => formatHourLabel(item.dateTime, settings))
+              .toList();
+    return IgnorePointer(
+      child: LineChart(
+        LineChartData(
+          minX: 0,
+          maxX: (count - 1).toDouble(),
+          minY: minY,
+          maxY: maxY,
+          lineTouchData: const LineTouchData(enabled: false),
+          gridData: FlGridData(
+            show: true,
+            drawHorizontalLine: false,
+            drawVerticalLine: true,
+            verticalInterval: 1,
+            getDrawingVerticalLine: (value) =>
+                const FlLine(color: Color(0xFFB1B1B1), strokeWidth: 0.5),
+          ),
+          borderData: FlBorderData(show: false),
+          titlesData: FlTitlesData(
+            leftTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 36,
+                interval: 1,
+                getTitlesWidget: (value, meta) {
+                  final index = value.round();
+                  if (index < 0 || index >= labels.length) {
+                    return const SizedBox.shrink();
+                  }
+                  return SizedBox(
+                    height: 36,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Text(
+                        labels[index],
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF2E2E30),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          lineBarsData: [
+            LineChartBarData(
+              isCurved: true,
+              curveSmoothness: 0.35,
+              color: const Color(0xFF6473FF),
+              barWidth: 2.0,
+              isStrokeCapRound: true,
+              dotData: const FlDotData(show: false),
+              belowBarData: BarAreaData(
+                show: true,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    const Color(0xFF9AA5FF).withValues(alpha: 0.45),
+                    const Color(0xFFBEC6FF).withValues(alpha: 0.25),
+                    const Color(0xFFFFFFFF).withValues(alpha: 0.0),
+                  ],
+                ),
+              ),
+              spots: List.generate(
+                count,
+                (i) => FlSpot(i.toDouble(), chartTemps[i]),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
-}
+
 class _UvIndexCard extends StatelessWidget {
   final int uv; // 0–11
 
@@ -873,8 +896,10 @@ class _UvIndexCard extends StatelessWidget {
               const double indicatorSize = 14;
               final double barWidth = constraints.maxWidth;
               final double indicatorLeft =
-                  ((uvValue / 11) * (barWidth - indicatorSize))
-                      .clamp(0.0, barWidth - indicatorSize);
+                  ((uvValue / 11) * (barWidth - indicatorSize)).clamp(
+                    0.0,
+                    barWidth - indicatorSize,
+                  );
 
               return SizedBox(
                 width: barWidth,
@@ -973,8 +998,12 @@ class TemperatureTrendChart extends StatelessWidget {
     }
 
     final hourly = items.take(10).toList();
-    final minTemp = hourly.map((e) => e.temperature).reduce((a, b) => a < b ? a : b);
-    final maxTemp = hourly.map((e) => e.temperature).reduce((a, b) => a > b ? a : b);
+    final minTemp = hourly
+        .map((e) => e.temperature)
+        .reduce((a, b) => a < b ? a : b);
+    final maxTemp = hourly
+        .map((e) => e.temperature)
+        .reduce((a, b) => a > b ? a : b);
     final range = (maxTemp - minTemp).clamp(1, double.infinity);
 
     return SizedBox(
@@ -982,7 +1011,8 @@ class TemperatureTrendChart extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: hourly.map((item) {
-          final temperature = settings.temperatureUnit == TemperatureUnit.celsius
+          final temperature =
+              settings.temperatureUnit == TemperatureUnit.celsius
               ? item.temperature
               : UnitConversionUtils.celsiusToFahrenheit(item.temperature);
           final normalized = ((temperature - minTemp) / range).clamp(0.0, 1.0);
@@ -1000,16 +1030,18 @@ class TemperatureTrendChart extends StatelessWidget {
                   Container(
                     height: 100 * normalized + 24,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.9),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     formatHourLabel(item.dateTime, settings),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white70,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: Colors.white70),
                   ),
                 ],
               ),
@@ -1034,39 +1066,56 @@ class _SunEventTime extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: alignment,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          time,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            fontSize: 34,
-            height: 0.95,
-            fontWeight: FontWeight.w800,
-            color: Color(0xFF111111),
-            letterSpacing: -1.2,
-          ),
-        ),
-        if (meridiem.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              meridiem,
-              style: const TextStyle(
-                fontSize: 20,
-                height: 1.0,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF111111),
-                letterSpacing: -0.3,
+    final boxAlignment = switch (alignment) {
+      CrossAxisAlignment.start => Alignment.centerLeft,
+      CrossAxisAlignment.end => Alignment.centerRight,
+      _ => Alignment.center,
+    };
+
+    return SizedBox(
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: alignment,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Align(
+            alignment: boxAlignment,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                time,
+                maxLines: 1,
+                style: const TextStyle(
+                  fontSize: 34,
+                  height: 0.95,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF111111),
+                  letterSpacing: -1.2,
+                ),
               ),
             ),
           ),
+          if (meridiem.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Align(
+              alignment: boxAlignment,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  meridiem,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    height: 1.0,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF111111),
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }
@@ -1190,20 +1239,18 @@ class _WindCompassPainter extends CustomPainter {
   }
 
   void _paintLabel(Canvas canvas, String text, Offset pos) {
-    final paragraphBuilder = ui.ParagraphBuilder(
-      ui.ParagraphStyle(
-        fontSize: 9,
-        fontWeight: FontWeight.w700,
-      ),
-    )
-      ..pushStyle(
-        ui.TextStyle(
-          color: const Color(0xFF000000),
-          fontSize: 9,
-          fontWeight: FontWeight.w700,
-        ),
-      )
-      ..addText(text);
+    final paragraphBuilder =
+        ui.ParagraphBuilder(
+            ui.ParagraphStyle(fontSize: 9, fontWeight: FontWeight.w700),
+          )
+          ..pushStyle(
+            ui.TextStyle(
+              color: const Color(0xFF000000),
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+            ),
+          )
+          ..addText(text);
 
     final paragraph = paragraphBuilder.build()
       ..layout(const ui.ParagraphConstraints(width: 20));

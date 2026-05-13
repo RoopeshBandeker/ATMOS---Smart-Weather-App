@@ -71,8 +71,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _settings = _copySettings(newS);
         _timeFormatIndex =
             _settings.resolvedTimeFormat == TimeFormatUnit.twentyFourHour
-                ? 1
-                : 0;
+            ? 1
+            : 0;
       });
     }
   }
@@ -127,118 +127,126 @@ class _SettingsScreenState extends State<SettingsScreen> {
         centerTitle: false,
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 42, 16, 100),
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: ClampingScrollPhysics(),
+        ),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          42,
+          16,
+          MediaQuery.of(context).padding.bottom + 120,
+        ),
         children: [
-
-            // ── Time Unit (2 wide buttons) ─────────────────────
-            _SettingsCard(
-              iconAsset: 'assets/settings_screen_assets/time_icon.svg',
+          // ── Time Unit (2 wide buttons) ─────────────────────
+          _SettingsCard(
+            iconAsset: 'assets/settings_screen_assets/time_icon.svg',
+            theme: pageTheme,
+            title: 'Time Unit',
+            child: _WideButtons(
               theme: pageTheme,
-              title: 'Time Unit',
-              child: _WideButtons(
-                theme: pageTheme,
-                options: const ['12 Hour', '24 Hour'],
-                selectedIndex: _timeFormatIndex,
-                onSelected: (i) async {
-                  setState(() {
-                    _timeFormatIndex = i;
-                    _settings.timeFormat = i == 0
-                        ? TimeFormatUnit.twelveHour
-                        : TimeFormatUnit.twentyFourHour;
-                  });
-                  await _updateSettings();
-                },
-              ),
+              options: const ['12 Hour', '24 Hour'],
+              selectedIndex: _timeFormatIndex,
+              onSelected: (i) async {
+                setState(() {
+                  _timeFormatIndex = i;
+                  _settings.timeFormat = i == 0
+                      ? TimeFormatUnit.twelveHour
+                      : TimeFormatUnit.twentyFourHour;
+                });
+                await _updateSettings();
+              },
             ),
+          ),
 
-            const SizedBox(height: 16),
+          const SizedBox(height: 16),
 
-            // ── Temperature Unit (2 wide buttons) ─────────────
-            _SettingsCard(
-              iconAsset:
-                  'assets/settings_screen_assets/temperature_icon.svg',
+          // ── Temperature Unit (2 wide buttons) ─────────────
+          _SettingsCard(
+            iconAsset: 'assets/settings_screen_assets/temperature_icon.svg',
+            theme: pageTheme,
+            title: 'Temperature Unit',
+            child: _WideButtons(
+              options: const ['Fahrenheit  °F', 'Celsius  °C'],
               theme: pageTheme,
-              title: 'Temperature Unit',
-              child: _WideButtons(
-                options: const ['Fahrenheit  °F', 'Celsius  °C'],
-                theme: pageTheme,
-                selectedIndex: _settings.temperatureUnit ==
-                        TemperatureUnit.fahrenheit
-                    ? 0
-                    : 1,
-                onSelected: (i) async {
-                  setState(() {
-                    _settings.temperatureUnit = i == 0
-                        ? TemperatureUnit.fahrenheit
-                        : TemperatureUnit.celsius;
-                  });
-                  await _updateSettings();
-                },
-              ),
+              selectedIndex:
+                  _settings.temperatureUnit == TemperatureUnit.fahrenheit
+                  ? 0
+                  : 1,
+              onSelected: (i) async {
+                setState(() {
+                  _settings.temperatureUnit = i == 0
+                      ? TemperatureUnit.fahrenheit
+                      : TemperatureUnit.celsius;
+                });
+                await _updateSettings();
+              },
             ),
+          ),
 
-            const SizedBox(height: 16),
+          const SizedBox(height: 16),
 
-            // ── Wind Speed Unit (4 small buttons) ─────────────
-            _SettingsCard(
-              iconAsset: 'assets/settings_screen_assets/wind_speed_icon.svg',
+          // ── Wind Speed Unit (4 small buttons) ─────────────
+          _SettingsCard(
+            iconAsset: 'assets/settings_screen_assets/wind_speed_icon.svg',
+            theme: pageTheme,
+            title: 'Wind Speed Unit',
+            child: _SmallButtons(
               theme: pageTheme,
-              title: 'Wind Speed Unit',
-              child: _SmallButtons(
-                theme: pageTheme,
-                options: const ['m/s', 'km/h', 'mph', 'knots'],
-                selectedIndex:
-                    WindSpeedUnit.values.indexOf(_settings.windSpeedUnit),
-                onSelected: (i) async {
-                  setState(() {
-                    _settings.windSpeedUnit = WindSpeedUnit.values[i];
-                  });
-                  await _updateSettings();
-                },
+              options: const ['m/s', 'km/h', 'mph', 'knots'],
+              selectedIndex: WindSpeedUnit.values.indexOf(
+                _settings.windSpeedUnit,
               ),
+              onSelected: (i) async {
+                setState(() {
+                  _settings.windSpeedUnit = WindSpeedUnit.values[i];
+                });
+                await _updateSettings();
+              },
             ),
+          ),
 
-            const SizedBox(height: 16),
+          const SizedBox(height: 16),
 
-            // ── Pressure Unit (4 small buttons) ───────────────
-            _SettingsCard(
-              iconAsset: 'assets/settings_screen_assets/pressure_icon.svg',
+          // ── Pressure Unit (4 small buttons) ───────────────
+          _SettingsCard(
+            iconAsset: 'assets/settings_screen_assets/pressure_icon.svg',
+            theme: pageTheme,
+            title: 'Pressure Unit',
+            child: _SmallButtons(
               theme: pageTheme,
-              title: 'Pressure Unit',
-              child: _SmallButtons(
-                theme: pageTheme,
-                options: const ['hpa', 'mbar', 'mmHg', 'inHg'],
-                selectedIndex:
-                    PressureUnit.values.indexOf(_settings.pressureUnit),
-                onSelected: (i) async {
-                  setState(() {
-                    _settings.pressureUnit = PressureUnit.values[i];
-                  });
-                  await _updateSettings();
-                },
+              options: const ['hpa', 'mbar', 'mmHg', 'inHg'],
+              selectedIndex: PressureUnit.values.indexOf(
+                _settings.pressureUnit,
               ),
+              onSelected: (i) async {
+                setState(() {
+                  _settings.pressureUnit = PressureUnit.values[i];
+                });
+                await _updateSettings();
+              },
             ),
+          ),
 
-            if (widget.showDoneButton) ...[
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: () => Navigator.of(context).pop(_settings),
-                  icon: const Icon(Icons.check),
-                  label: const Text('Done'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: pageTheme.selectedButton,
-                    foregroundColor: pageTheme.selectedButtonText,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
+          if (widget.showDoneButton) ...[
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => Navigator.of(context).pop(_settings),
+                icon: const Icon(Icons.check),
+                label: const Text('Done'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: pageTheme.selectedButton,
+                  foregroundColor: pageTheme.selectedButtonText,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
                   ),
                 ),
               ),
-            ],
+            ),
           ],
+        ],
       ),
     );
   }
@@ -357,16 +365,23 @@ class _WideButtons extends StatelessWidget {
                   ],
                 ),
                 alignment: Alignment.center,
-                child: Text(
-                  options[index],
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: isSelected
-                        ? theme.selectedButtonText
-                        : theme.unselectedButtonText,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      options[index],
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: isSelected
+                            ? theme.selectedButtonText
+                            : theme.unselectedButtonText,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -398,42 +413,55 @@ class _SmallButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 9,
-      runSpacing: 9,
+    const spacing = 9.0;
+
+    return Row(
       children: List.generate(options.length, (index) {
         final isSelected = index == selectedIndex;
-        return GestureDetector(
-          onTap: () => onSelected(index),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            curve: Curves.easeInOut,
-            width: 81,
-            height: 55,
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? theme.selectedButton
-                  : theme.unselectedButtonBackground,
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 3,
-                  offset: const Offset(0, 1),
+        final isLast = index == options.length - 1;
+
+        return Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(right: isLast ? 0 : spacing),
+            child: GestureDetector(
+              onTap: () => onSelected(index),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 160),
+                curve: Curves.easeInOut,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? theme.selectedButton
+                      : theme.unselectedButtonBackground,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 3,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              options[index],
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: isSelected
-                    ? theme.selectedButtonText
-                    : theme.unselectedButtonText,
+                alignment: Alignment.center,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      options[index],
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: isSelected
+                            ? theme.selectedButtonText
+                            : theme.unselectedButtonText,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),

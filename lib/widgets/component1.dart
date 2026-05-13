@@ -45,8 +45,12 @@ class Component1 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+    const baseHeight = 76.0;
+
     return Container(
-      height: 92,
+      height: baseHeight + bottomInset,
+      padding: EdgeInsets.only(bottom: bottomInset),
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 255, 255, 255),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
@@ -89,7 +93,7 @@ class Component1 extends StatelessWidget {
                 ),
 
                 // Reserve space for the center search button
-                const SizedBox(width: 64),
+                const SizedBox(width: 56),
 
                 Expanded(
                   child: Center(
@@ -117,12 +121,12 @@ class Component1 extends StatelessWidget {
 
           // Center search FAB (lowered for alignment)
           Positioned(
-            top: 11,
+            top: 6,
             child: GestureDetector(
               onTap: () => onItemTapped(2),
               child: Container(
-                width: 64,
-                height: 64,
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
                   color: Colors.black87,
                   shape: BoxShape.circle,
@@ -137,9 +141,8 @@ class Component1 extends StatelessWidget {
                 child: Center(
                   child: SvgPicture.asset(
                     'assets/nav_assets/nav_search.svg',
-                    width: 58,
-                    height: 58,
-                    
+                    width: 50,
+                    height: 50,
                   ),
                 ),
               ),

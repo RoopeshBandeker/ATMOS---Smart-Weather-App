@@ -15,11 +15,7 @@ class MapScreen extends StatefulWidget {
   final AppSettings settings;
   final LatLng? initialCenter;
 
-  const MapScreen({
-    required this.settings,
-    this.initialCenter,
-    super.key,
-  });
+  const MapScreen({required this.settings, this.initialCenter, super.key});
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -37,28 +33,26 @@ class _MapScreenState extends State<MapScreen> {
       InteractiveFlag.all & ~InteractiveFlag.rotate;
 
   final MapController _mapController = MapController();
-  final ValueNotifier<String> _currentLayerNotifier =
-      ValueNotifier<String>('clouds_new');
-  final ValueNotifier<bool> _legendCollapsedNotifier =
-      ValueNotifier<bool>(false);
+  final ValueNotifier<String> _currentLayerNotifier = ValueNotifier<String>(
+    'clouds_new',
+  );
+  final ValueNotifier<bool> _legendCollapsedNotifier = ValueNotifier<bool>(
+    false,
+  );
   final ValueNotifier<_WindField?> _windFieldNotifier =
       ValueNotifier<_WindField?>(null);
   final WeatherMapService _weatherMapService = WeatherMapService();
-  final ValueNotifier<bool> _isLoadingLocationNotifier =
-      ValueNotifier<bool>(true);
+  final ValueNotifier<bool> _isLoadingLocationNotifier = ValueNotifier<bool>(
+    true,
+  );
   final ValueNotifier<String?> _locationMessageNotifier =
       ValueNotifier<String?>(null);
-
   LatLng _currentCenter = _defaultIndiaCenter;
   Timer? _windRefreshDebounceTimer;
   int _windRequestToken = 0;
 
   static const List<_WeatherOverlayLayer> _layers = [
-    _WeatherOverlayLayer(
-      id: 'clouds_new',
-      label: 'Clouds',
-      icon: Icons.cloud,
-    ),
+    _WeatherOverlayLayer(id: 'clouds_new', label: 'Clouds', icon: Icons.cloud),
     _WeatherOverlayLayer(
       id: 'precipitation_new',
       label: 'Rain',
@@ -69,11 +63,7 @@ class _MapScreenState extends State<MapScreen> {
       label: 'Temperature',
       icon: Icons.thermostat,
     ),
-    _WeatherOverlayLayer(
-      id: 'wind_new',
-      label: 'Wind',
-      icon: Icons.air,
-    ),
+    _WeatherOverlayLayer(id: 'wind_new', label: 'Wind', icon: Icons.air),
     _WeatherOverlayLayer(
       id: 'pressure_new',
       label: 'Pressure',
@@ -131,7 +121,8 @@ class _MapScreenState extends State<MapScreen> {
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
         _isLoadingLocationNotifier.value = false;
-        _locationMessageNotifier.value = 'Using India as the default map center.';
+        _locationMessageNotifier.value =
+            'Using India as the default map center.';
         _scheduleWindRefresh(_defaultIndiaCenter, immediate: true);
         return;
       }
@@ -178,10 +169,7 @@ class _MapScreenState extends State<MapScreen> {
     _loadWindFieldFor(_currentCenter);
   }
 
-  void _scheduleWindRefresh(
-    LatLng center, {
-    bool immediate = false,
-  }) {
+  void _scheduleWindRefresh(LatLng center, {bool immediate = false}) {
     _windRefreshDebounceTimer?.cancel();
     if (immediate) {
       _loadWindFieldFor(center);
@@ -242,9 +230,7 @@ class _MapScreenState extends State<MapScreen> {
     if (layerId == 'wind_new') {
       _scheduleWindRefresh(_currentCenter, immediate: true);
     }
-    debugPrint(
-      'Switched overlay to $layerId: ${_overlayDebugUrl(layerId)}',
-    );
+    debugPrint('Switched overlay to $layerId: ${_overlayDebugUrl(layerId)}');
   }
 
   @override
@@ -288,6 +274,9 @@ class _MapScreenState extends State<MapScreen> {
                 final center = camera.center;
 
                 _currentCenter = center;
+                if (hasGesture) {
+                  _scheduleWindRefresh(center);
+                }
               },
             ),
             children: [
@@ -302,9 +291,7 @@ class _MapScreenState extends State<MapScreen> {
                 maxNativeZoom: 10,
               ),
               if (_hasValidApiKey)
-                _WeatherOverlay(
-                  currentLayerNotifier: _currentLayerNotifier,
-                )
+                _WeatherOverlay(currentLayerNotifier: _currentLayerNotifier)
               else
                 const SizedBox.shrink(),
             ],
@@ -511,9 +498,7 @@ class _WeatherOverlayLayer {
 class _WeatherOverlay extends StatelessWidget {
   final ValueNotifier<String> currentLayerNotifier;
 
-  const _WeatherOverlay({
-    required this.currentLayerNotifier,
-  });
+  const _WeatherOverlay({required this.currentLayerNotifier});
 
   @override
   Widget build(BuildContext context) {
@@ -623,9 +608,7 @@ class _LayerControlBar extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      textStyle: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      textStyle: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 );
@@ -748,8 +731,7 @@ class _WeatherLegend extends StatelessWidget {
                                         MainAxisAlignment.spaceBetween,
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
-                                    children: config.labels
-                                        .reversed
+                                    children: config.labels.reversed
                                         .map(
                                           (label) => Text(
                                             '${label.value}${config.unit}',
@@ -802,11 +784,7 @@ class _LegendConfig {
         return const _LegendConfig(
           title: 'Rain',
           unit: ' mm',
-          colors: [
-            Color(0xFF7B1FA2),
-            Color(0xFF3949AB),
-            Color(0xFF1E88E5),
-          ],
+          colors: [Color(0xFF7B1FA2), Color(0xFF3949AB), Color(0xFF1E88E5)],
           labels: [
             _LegendLabel('0'),
             _LegendLabel('5'),
@@ -883,10 +861,7 @@ class _WindField {
   final double speed;
   final double directionDegrees;
 
-  const _WindField({
-    required this.speed,
-    required this.directionDegrees,
-  });
+  const _WindField({required this.speed, required this.directionDegrees});
 }
 
 class _WindOverlayHost extends StatelessWidget {
@@ -915,9 +890,7 @@ class _WindOverlayHost extends StatelessWidget {
                 return const SizedBox.shrink();
               }
               return RepaintBoundary(
-                child: _WindParticleOverlay(
-                  windField: windField,
-                ),
+                child: _WindParticleOverlay(windField: windField),
               );
             },
           );
@@ -930,9 +903,7 @@ class _WindOverlayHost extends StatelessWidget {
 class _WindParticleOverlay extends StatefulWidget {
   final _WindField windField;
 
-  const _WindParticleOverlay({
-    required this.windField,
-  });
+  const _WindParticleOverlay({required this.windField});
 
   @override
   State<_WindParticleOverlay> createState() => _WindParticleOverlayState();
@@ -950,9 +921,7 @@ class _WindParticleOverlayState extends State<_WindParticleOverlay>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _engine = _WindParticleEngine(
-      windField: widget.windField,
-    );
+    _engine = _WindParticleEngine(windField: widget.windField);
     _ticker = createTicker(_onTick)..start();
   }
 
@@ -1033,9 +1002,8 @@ class _WindParticleEngine extends ChangeNotifier {
   double _perpendicularDy = 1;
   double _speedFactor = 0;
 
-  _WindParticleEngine({
-    required _WindField windField,
-  }) : _windField = windField {
+  _WindParticleEngine({required _WindField windField})
+    : _windField = windField {
     _updateFlowMetrics();
   }
 
@@ -1050,10 +1018,7 @@ class _WindParticleEngine extends ChangeNotifier {
     _syncParticleCount();
     for (final particle in _particles) {
       _applyWindVector(particle);
-      _positionParticleInStream(
-        particle,
-        resetProgress: false,
-      );
+      _positionParticleInStream(particle, resetProgress: false);
       particle.previousX = particle.x;
       particle.previousY = particle.y;
     }
@@ -1149,10 +1114,9 @@ class _WindParticleEngine extends ChangeNotifier {
     final speed = (0.6 + (baseSpeed * 0.22)) * speedVariance;
     final dx = math.cos(radians) * speed;
     final dy = math.sin(radians) * speed;
-    final currentTrailLength = math.sqrt((dx * dx) + (dy * dy)).clamp(
-      _minTrailLength,
-      _maxTrailLength,
-    );
+    final currentTrailLength = math
+        .sqrt((dx * dx) + (dy * dy))
+        .clamp(_minTrailLength, _maxTrailLength);
     final trailScale = currentTrailLength / (speed == 0 ? 1 : speed);
 
     particle
@@ -1191,10 +1155,7 @@ class _WindParticleEngine extends ChangeNotifier {
     final targetCount =
         (_minParticles + ((_maxParticles - _minParticles) * _speedFactor)) *
         areaFactor;
-    _particleCount = targetCount.round().clamp(
-      _minParticles,
-      _maxParticles,
-    );
+    _particleCount = targetCount.round().clamp(_minParticles, _maxParticles);
     _streamCount = (8 + (_speedFactor * 10)).round().clamp(8, 18);
   }
 
@@ -1259,18 +1220,24 @@ class _WindParticleEngine extends ChangeNotifier {
         : 0.0;
     final lateralNoise = (_random.nextDouble() - 0.5) * stream.width;
     final centerX =
-        (_viewport.width / 2) + (_perpendicularDx * (stream.lateralOffset + lateralNoise));
+        (_viewport.width / 2) +
+        (_perpendicularDx * (stream.lateralOffset + lateralNoise));
     final centerY =
-        (_viewport.height / 2) + (_perpendicularDy * (stream.lateralOffset + lateralNoise));
+        (_viewport.height / 2) +
+        (_perpendicularDy * (stream.lateralOffset + lateralNoise));
 
     if (resetProgress) {
-      particle.x = _wrapToViewport(centerX + (_screenDx * progress), _viewport.width);
-      particle.y = _wrapToViewport(centerY + (_screenDy * progress), _viewport.height);
+      particle.x = _wrapToViewport(
+        centerX + (_screenDx * progress),
+        _viewport.width,
+      );
+      particle.y = _wrapToViewport(
+        centerY + (_screenDy * progress),
+        _viewport.height,
+      );
     } else {
-      final nudgedX =
-          particle.x + (_perpendicularDx * lateralNoise * 0.08);
-      final nudgedY =
-          particle.y + (_perpendicularDy * lateralNoise * 0.08);
+      final nudgedX = particle.x + (_perpendicularDx * lateralNoise * 0.08);
+      final nudgedY = particle.y + (_perpendicularDy * lateralNoise * 0.08);
       particle.x = _wrapToViewport(nudgedX, _viewport.width);
       particle.y = _wrapToViewport(nudgedY, _viewport.height);
     }
@@ -1289,10 +1256,7 @@ class _WindParticleEngine extends ChangeNotifier {
       particle.streamIndex = _random.nextInt(_streamCount);
     }
     _applyWindVector(particle);
-    _positionParticleInStream(
-      particle,
-      resetProgress: true,
-    );
+    _positionParticleInStream(particle, resetProgress: true);
     particle.previousX = particle.x;
     particle.previousY = particle.y;
   }
@@ -1328,10 +1292,7 @@ class _WindStream {
   final double lateralOffset;
   final double width;
 
-  const _WindStream({
-    required this.lateralOffset,
-    required this.width,
-  });
+  const _WindStream({required this.lateralOffset, required this.width});
 }
 
 class _WindParticlePainter extends CustomPainter {

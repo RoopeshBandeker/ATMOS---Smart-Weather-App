@@ -169,9 +169,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 const SizedBox(height: 16),
                 _buildSearchBar(searchBarTheme),
                 const SizedBox(height: 10),
-                Expanded(
-                  child: _buildSuggestions(),
-                ),
+                Expanded(child: _buildSuggestions()),
               ],
             ),
           ),
@@ -182,66 +180,83 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _buildSearchBar(_SearchBarTheme theme) {
     return Center(
-      child: SizedBox(
-        width: 380,
-        height: 60,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: theme.outerBackground,
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 310,
-                height: 60,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 380),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final compact = constraints.maxWidth < 340;
+            final barHeight = compact ? 54.0 : 60.0;
+            final iconWidth = (constraints.maxWidth * 0.18).clamp(54.0, 70.0);
+            final textPadding = compact ? 12.0 : 16.0;
+            final textSize = compact ? 16.0 : 18.0;
+
+            return SizedBox(
+              width: double.infinity,
+              height: barHeight,
+              child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: theme.outerBackground,
                   borderRadius: BorderRadius.circular(15),
                 ),
-                alignment: Alignment.centerLeft,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: TextField(
-                  controller: _controller,
-                  autofocus: true,
-                  textInputAction: TextInputAction.search,
-                  style: const TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 18,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black87,
-                  ),
-                  decoration: const InputDecoration(
-                    hintText: 'Search ...',
-                    hintStyle: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 18,
-                      fontWeight: FontWeight.w400,
-                      color: Color(0xFFABB7C2),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: barHeight,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        alignment: Alignment.centerLeft,
+                        padding: EdgeInsets.symmetric(horizontal: textPadding),
+                        child: TextField(
+                          controller: _controller,
+                          autofocus: true,
+                          maxLines: 1,
+                          textAlignVertical: TextAlignVertical.center,
+                          textInputAction: TextInputAction.search,
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: textSize,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.black87,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'Search ...',
+                            hintStyle: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: textSize,
+                              fontWeight: FontWeight.w400,
+                              color: const Color(0xFFABB7C2),
+                            ),
+                            border: InputBorder.none,
+                            isCollapsed: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          onChanged: _onQueryChanged,
+                          onSubmitted: _onQueryChanged,
+                        ),
+                      ),
                     ),
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  onChanged: _onQueryChanged,
-                  onSubmitted: _onQueryChanged,
+                    SizedBox(
+                      width: iconWidth,
+                      child: Center(
+                        child: SvgPicture.asset(
+                          _searchIconAsset,
+                          width: 24,
+                          height: 24,
+                          colorFilter: ColorFilter.mode(
+                            theme.iconColor,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              Expanded(
-                child: Center(
-                  child: SvgPicture.asset(
-                    _searchIconAsset,
-                    width: 24,
-                    height: 24,
-                    colorFilter: ColorFilter.mode(
-                      theme.iconColor,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -276,9 +291,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
     if (_isLoading) {
       return const Center(
-        child: CircularProgressIndicator(
-          color: Color(0xFF40C2FF),
-        ),
+        child: CircularProgressIndicator(color: Color(0xFF40C2FF)),
       );
     }
 
@@ -297,54 +310,57 @@ class _SearchScreenState extends State<SearchScreen> {
 
     if (_suggestions.isEmpty) {
       return Center(
-        child: Container(
-          width: 323,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 18,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: searchBarTheme.outerBackground,
-                  shape: BoxShape.circle,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 323),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 18,
+                  offset: const Offset(0, 10),
                 ),
-                child: Center(
-                  child: SvgPicture.asset(
-                    _noLocationIconAsset,
-                    width: 28,
-                    height: 28,
-                    colorFilter: ColorFilter.mode(
-                      searchBarTheme.iconColor,
-                      BlendMode.srcIn,
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: searchBarTheme.outerBackground,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: SvgPicture.asset(
+                      _noLocationIconAsset,
+                      width: 28,
+                      height: 28,
+                      colorFilter: ColorFilter.mode(
+                        searchBarTheme.iconColor,
+                        BlendMode.srcIn,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'No matching locations found',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1F2937),
+                const SizedBox(height: 16),
+                const Text(
+                  'No matching locations found',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1F2937),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       );
@@ -355,7 +371,10 @@ class _SearchScreenState extends State<SearchScreen> {
       separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final suggestion = _suggestions[index];
-        return _buildLocationCard(suggestion, _getSearchBarTheme(_currentDateTime));
+        return _buildLocationCard(
+          suggestion,
+          _getSearchBarTheme(_currentDateTime),
+        );
       },
     );
   }
@@ -366,60 +385,60 @@ class _SearchScreenState extends State<SearchScreen> {
   ) {
     return GestureDetector(
       onTap: () => _selectLocation(suggestion),
-      child: Container(
-        width: 323,
-        height: 56,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Row(
-          children: [
-            const SizedBox(width: 14),
-            SvgPicture.asset(
-              _locationIconAsset,
-              width: 26,
-              height: 26,
-              colorFilter: ColorFilter.mode(
-                theme.iconColor,
-                BlendMode.srcIn,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 323),
+        child: Container(
+          width: double.infinity,
+          height: 56,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Row(
+            children: [
+              const SizedBox(width: 14),
+              SvgPicture.asset(
+                _locationIconAsset,
+                width: 26,
+                height: 26,
+                colorFilter: ColorFilter.mode(theme.iconColor, BlendMode.srcIn),
               ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    suggestion.cityName,
-                    style: const TextStyle(
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w800,
-                      fontSize: 20,
-                      height: 1.2,
-                      color: Colors.black,
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      suggestion.cityName,
+                      style: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w800,
+                        fontSize: 20,
+                        height: 1.2,
+                        color: Colors.black,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    suggestion.displayName,
-                    style: const TextStyle(
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                      height: 1.23,
-                      color: Color(0xFF4A4A4A),
+                    Text(
+                      suggestion.displayName,
+                      style: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        height: 1.23,
+                        color: Color(0xFF4A4A4A),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-          ],
+              const SizedBox(width: 12),
+            ],
+          ),
         ),
       ),
     );
